@@ -320,8 +320,8 @@
 
   /* ---------- Glossary popover ---------- */
   .glossary-pop{
-    position:fixed; max-width:250px; background:var(--navy-deep); color:var(--white);
-    padding:10px 12px; border-radius:10px; font-size:13.5px; line-height:1.4;
+    position:fixed; max-width:290px; background:var(--navy-deep); color:var(--white);
+    padding:12px 14px; border-radius:10px; font-size:16px; line-height:1.45;
     box-shadow:0 8px 22px rgba(0,0,0,.3); z-index:60; display:none;
     border:1px solid var(--brass);
   }
@@ -930,9 +930,9 @@ function showGlossary(btn){
   var vw = window.innerWidth || document.documentElement.clientWidth || 320;
   var vh = window.innerHeight || document.documentElement.clientHeight || 640;
   var top = r.bottom + 8;
-  var maxLeft = Math.max(8, vw-258);
+  var maxLeft = Math.max(8, vw-298); /* 290px max-width + 8px margin */
   var left = Math.min(Math.max(8, r.left), maxLeft);
-  if(top + 90 > vh) top = Math.max(8, r.top - 96);
+  if(top + 120 > vh) top = Math.max(8, r.top - 126);
   pop.style.top = top+'px';
   pop.style.left = left+'px';
 }
