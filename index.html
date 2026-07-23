@@ -123,9 +123,9 @@
   .gear.active .gear-teeth{fill:var(--steel);}
   .gear.opened .gear-rim{stroke:var(--brass); opacity:1; stroke-width:3.5;}
   .gear-label{
-    fill:var(--white); font-weight:800; font-size:13.5px;
+    fill:var(--white); font-weight:800; font-size:15.5px;
     text-anchor:middle; pointer-events:none;
-    paint-order:stroke; stroke:var(--navy-deep); stroke-width:3px; stroke-linejoin:round;
+    paint-order:stroke; stroke:var(--navy-deep); stroke-width:3.5px; stroke-linejoin:round;
   }
   .gear-check{
     opacity:0; transition:opacity .25s;
@@ -142,7 +142,7 @@
   }
   .gear-chip .chip-icon{width:34px; height:34px; flex:none;}
   .gear-chip .chip-icon svg{width:100%; height:100%;}
-  .gear-chip-label{font-weight:800; font-size:13.5px; line-height:1.2;}
+  .gear-chip-label{font-weight:800; font-size:15.5px; line-height:1.2;}
   .gear-chip.opened{border-color:var(--brass); box-shadow:0 0 0 2px rgba(201,162,39,.5) inset;}
   .gear-chip:focus-visible{outline:3px solid var(--steel); outline-offset:2px;}
 
@@ -654,7 +654,7 @@ function tickGears(t){
 function gearMarkup(gear, cx, cy, spinClass, pathD, opened){
   var lines = gear.short.split('\n');
   var tspans = lines.map(function(line,i){
-    var dy = lines.length===1 ? 0 : (i===0 ? -7 : 14);
+    var dy = lines.length===1 ? 0 : (i===0 ? -8 : 16);
     return '<tspan x="0" dy="'+dy+'">'+line+'</tspan>';
   }).join('');
   return (
