@@ -71,9 +71,12 @@
   }
   .mode-toggle button{
     border:none; background:transparent; color:#D9E2F1;
-    font-size:14px; font-weight:700; padding:9px 18px; border-radius:999px;
+    font-size:17px; font-weight:700; padding:12px 24px; border-radius:999px;
     transition:background .2s,color .2s;
-    min-height:40px;
+    min-height:48px;
+  }
+  @media (max-width:480px){
+    .mode-toggle button{font-size:15.5px; padding:10px 16px; min-height:44px;}
   }
   .mode-toggle button[aria-pressed="true"]{
     background:var(--brass); color:var(--navy-deep);
