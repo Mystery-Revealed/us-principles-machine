@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>The Principles Machine</title>
+<meta name="description" content="Click a gear to learn a constitutional principle. Seven gears, seven principles, one machine.">
+<style>
+  :root{
+    --navy:#1B2A4A;
+    --navy-deep:#10203C;
+    --steel:#2E74B5;
+    --crimson:#B23A48;
+    --brass:#C9A227;
+    --green:#2F7D4F;
+    --paper:#F5F7FA;
+    --white:#FFFFFF;
+    --ink:#22283A;
+    --slate:#5B6770;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,p{margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  img{max-width:100%;display:block;}
+
+  .app{max-width:1000px;margin:0 auto;overflow-x:hidden;}
+
+  /* ---------- Header / hero ---------- */
+  .hero{
+    position:relative;
+    background:linear-gradient(155deg,var(--navy) 0%,var(--navy-deep) 100%);
+    color:var(--white);
+    padding:22px 20px 26px;
+    overflow:hidden;
+  }
+  .hero-photo{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    opacity:.34;
+    mix-blend-mode:luminosity;
+  }
+  .hero-scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(16,32,60,.55) 0%, rgba(16,32,60,.86) 100%);
+  }
+  .hero-inner{position:relative; z-index:1;}
+  .hero-eyebrow{
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--brass); font-weight:700; margin-bottom:6px;
+  }
+  .hero h1{font-size:clamp(24px,5vw,34px); font-weight:800; letter-spacing:.01em;}
+  .hero p.sub{margin-top:6px; font-size:15px; color:#D9E2F1; max-width:52ch;}
+
+  .mode-toggle{
+    margin-top:16px;
+    display:inline-flex;
+    background:rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:999px;
+    padding:4px;
+    gap:2px;
+  }
+  .mode-toggle button{
+    border:none; background:transparent; color:#D9E2F1;
+    font-size:14px; font-weight:700; padding:9px 18px; border-radius:999px;
+    transition:background .2s,color .2s;
+    min-height:40px;
+  }
+  .mode-toggle button[aria-pressed="true"]{
+    background:var(--brass); color:var(--navy-deep);
+  }
+  .mode-toggle button:focus-visible{outline:2px solid var(--white); outline-offset:2px;}
+
+  /* ---------- Stage ---------- */
+  .stage{position:relative; padding:26px 16px 10px;}
+
+  .progress-row{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin-bottom:6px; flex-wrap:wrap;
+  }
+  .progress-dot{
+    width:11px;height:11px;border-radius:50%;
+    background:#D7DEE8; border:2px solid #C3CCDA;
+    transition:background .25s, border-color .25s;
+  }
+  .progress-dot.done{background:var(--brass); border-color:#A9820F;}
+  .progress-label{font-size:12.5px; color:var(--slate); font-weight:600; margin-left:6px;}
+
+  .machine-wrap{
+    position:relative;
+    display:flex; justify-content:center;
+    margin:0 auto;
+    max-width:560px;
+  }
+  #machine-svg{width:100%; height:auto; display:block; overflow:visible;}
+
+  .gear{cursor:pointer;}
+  .gear:focus-visible .gear-hit{outline:3px solid var(--steel); outline-offset:2px;}
+  .gear-spin{transform-origin:0 0;}
+  .gear-spin--cw{animation:spin-cw 24s linear infinite;}
+  .gear-spin--ccw{animation:spin-ccw 24s linear infinite;}
+  .engaged .gear-spin--cw{animation-duration:52s;}
+  .engaged .gear-spin--ccw{animation-duration:52s;}
+  .synced .gear-spin--cw,
+  .synced .gear-spin--ccw{animation:spin-cw 10s linear infinite;}
+  @keyframes spin-cw{ to{ transform:rotate(360deg); } }
+  @keyframes spin-ccw{ to{ transform:rotate(-360deg); } }
+
+  .gear-teeth{fill:var(--navy); transition:fill .2s;}
+  .gear-hub{fill:var(--navy-deep);}
+  .gear-rim{fill:none; stroke:var(--brass); stroke-width:2.5; opacity:.85;}
+  .gear-bore{fill:none; stroke:var(--brass); stroke-width:1.6; opacity:.55;}
+  .gear-scale{transition:transform .3s cubic-bezier(.34,1.56,.64,1); transform-origin:0 0;}
+  .gear.active .gear-scale{transform:scale(1.16);}
+  .gear.active .gear-teeth{fill:var(--steel);}
+  .gear.opened .gear-rim{stroke:var(--brass); opacity:1; stroke-width:3.5;}
+  .gear-label{
+    fill:var(--white); font-weight:800; font-size:13.5px;
+    text-anchor:middle; pointer-events:none;
+    paint-order:stroke; stroke:var(--navy-deep); stroke-width:3px; stroke-linejoin:round;
+  }
+  .gear-check{
+    opacity:0; transition:opacity .25s;
+  }
+  .gear.opened .gear-check{opacity:1;}
+  .gear-hit{fill:transparent;}
+
+  /* mobile grid fallback */
+  .gear-grid{display:none; grid-template-columns:1fr 1fr; gap:12px; margin:0 auto; max-width:420px;}
+  .gear-chip{
+    display:flex; align-items:center; gap:10px;
+    background:var(--navy); color:var(--white); border:2px solid var(--brass);
+    border-radius:14px; padding:12px 12px; text-align:left; min-height:64px;
+  }
+  .gear-chip .chip-icon{width:34px; height:34px; flex:none;}
+  .gear-chip .chip-icon svg{width:100%; height:100%;}
+  .gear-chip-label{font-weight:800; font-size:13.5px; line-height:1.2;}
+  .gear-chip.opened{border-color:var(--brass); box-shadow:0 0 0 2px rgba(201,162,39,.5) inset;}
+  .gear-chip:focus-visible{outline:3px solid var(--steel); outline-offset:2px;}
+
+  @media (max-width:600px){
+    .machine-wrap{display:none;}
+    .gear-grid{display:grid;}
+  }
+
+  /* ---------- Dim overlay ---------- */
+  .dim-overlay{
+    position:fixed; inset:0; background:rgba(16,32,60,.45);
+    opacity:0; pointer-events:none; transition:opacity .25s;
+    z-index:20;
+  }
+  .stage.card-open .dim-overlay{opacity:1; pointer-events:auto;}
+  .stage.card-open .machine-wrap,
+  .stage.card-open .gear-grid{opacity:.4; filter:saturate(65%);}
+
+  /* ---------- Card panel ---------- */
+  .card-panel{
+    position:absolute; left:0; right:0; bottom:0;
+    max-width:640px; margin:0 auto;
+    background:var(--white);
+    border-radius:20px 20px 0 0;
+    box-shadow:0 -8px 30px rgba(16,32,60,.28);
+    transform:translateY(105%);
+    transition:transform .32s cubic-bezier(.25,.9,.35,1);
+    z-index:21;
+    max-height:min(78vh,680px);
+    overflow-y:auto;
+    border-top:4px solid var(--brass);
+  }
+  .stage.card-open .card-panel{transform:translateY(0);}
+  .card-inner{padding:22px 20px 28px;}
+  .card-topline{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+  .card-eyebrow{font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--steel); font-weight:800;}
+  .card-panel h2{font-size:23px; color:var(--navy); font-weight:800; margin-top:2px;}
+  .card-close{
+    background:var(--paper); border:1px solid #D7DEE8; color:var(--navy);
+    width:38px; height:38px; border-radius:50%; font-size:18px; line-height:1; flex:none;
+  }
+  .card-close:focus-visible{outline:2px solid var(--steel); outline-offset:2px;}
+
+  .card-hero{
+    margin-top:14px; border-radius:12px; overflow:hidden;
+    aspect-ratio:16/9; background:var(--paper);
+  }
+  .card-hero img{width:100%; height:100%; object-fit:cover;}
+
+  .card-section{margin-top:16px;}
+  .card-section .k{
+    font-size:11.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--slate); margin-bottom:5px; display:flex; align-items:center; gap:8px;
+  }
+  .card-section p{font-size:15.5px; color:var(--ink);}
+  .picture-row{display:flex; align-items:center; gap:12px;}
+  .picture-row .pict-icon{width:56px;height:56px;flex:none; background:var(--paper); border-radius:12px; padding:8px; border:1px solid #E4E9F1;}
+  .picture-row .pict-icon svg{width:100%;height:100%;}
+
+  .confuse-box{
+    margin-top:16px; background:#FCF6E4; border:1px solid #EAD9A0;
+    border-radius:12px; padding:12px 14px; display:flex; gap:10px;
+  }
+  .confuse-box .flag{font-size:18px; flex:none;}
+  .confuse-box p{font-size:14.5px; color:#5C4A12;}
+  .confuse-box b{color:#4A3B0E;}
+
+  .term{
+    background:none; border:none; padding:0; margin:0; font:inherit;
+    color:var(--steel); font-weight:800; text-decoration:underline; text-decoration-style:dotted;
+    text-underline-offset:3px; cursor:pointer;
+  }
+  .term:focus-visible{outline:2px solid var(--steel); outline-offset:2px; border-radius:3px;}
+
+  /* ---------- Federalism sorter ---------- */
+  .sorter{margin-top:18px; background:var(--paper); border-radius:14px; padding:14px;}
+  .sorter h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--navy); font-weight:800;}
+  .sorter-sub{font-size:13px; color:var(--slate); margin-top:3px;}
+  .sorter-tray{
+    display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; min-height:40px;
+    padding:8px; border:1.5px dashed #C3CCDA; border-radius:10px;
+  }
+  .sorter-cols{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px;}
+  .sorter-col{
+    background:var(--white); border:1.5px solid #E4E9F1; border-radius:10px;
+    padding:8px; min-height:96px;
+  }
+  .sorter-col h4{font-size:11.5px; color:var(--navy); font-weight:800; text-align:center; margin-bottom:2px;}
+  .sorter-col .hint{font-size:10px; color:var(--slate); text-align:center; display:block; margin-bottom:6px;}
+  .sorter-col .zone-body{display:flex; flex-direction:column; gap:6px; min-height:44px;}
+  .chip{
+    display:block; width:100%; text-align:left;
+    background:var(--white); border:1.5px solid #C3CCDA; border-radius:8px;
+    padding:7px 9px; font-size:12.5px; font-weight:700; color:var(--ink);
+  }
+  .chip:focus-visible{outline:2px solid var(--steel); outline-offset:2px;}
+  .chip.correct{border-color:var(--green); background:#EAF6EE; color:#1E5C36;}
+  .chip.incorrect{border-color:var(--crimson); background:#FBEBEC; color:#7C2530;}
+  .chip .mark{margin-right:4px; font-weight:900;}
+
+  /* ---------- Match It ---------- */
+  .match-panel{max-width:600px; margin:0 auto; padding:4px 4px 4px;}
+  .match-card{
+    background:var(--white); border-radius:16px; padding:20px;
+    border:1.5px solid #E4E9F1; box-shadow:0 2px 10px rgba(16,32,60,.06);
+  }
+  .match-top{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .streak{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--navy); color:var(--white); font-weight:800; font-size:13px;
+    padding:6px 12px; border-radius:999px;
+  }
+  .streak b{color:var(--brass); font-size:15px;}
+  .match-instructions{font-size:12.5px; color:var(--slate); font-weight:600;}
+  .scenario-text{
+    font-size:18px; font-weight:700; color:var(--navy); margin-top:16px; line-height:1.4;
+  }
+  .match-feedback{
+    margin-top:16px; border-radius:12px; padding:13px 14px;
+    display:none; gap:8px; align-items:flex-start;
+  }
+  .match-feedback.show{display:flex;}
+  .match-feedback.correct{background:#EAF6EE; border:1.5px solid var(--green);}
+  .match-feedback.incorrect{background:#FBEBEC; border:1.5px solid var(--crimson);}
+  .match-feedback .mf-icon{font-size:19px; flex:none; line-height:1.3;}
+  .match-feedback .mf-title{font-weight:800; font-size:14.5px;}
+  .match-feedback.correct .mf-title{color:#1E5C36;}
+  .match-feedback.incorrect .mf-title{color:#7C2530;}
+  .match-feedback .mf-tip{font-size:14px; color:var(--ink); margin-top:3px;}
+  .next-btn{
+    margin-top:16px; display:none; width:100%;
+    background:var(--navy); color:var(--white); border:none; border-radius:10px;
+    padding:13px; font-weight:800; font-size:15px;
+  }
+  .next-btn.show{display:block;}
+  .next-btn:focus-visible{outline:2px solid var(--steel); outline-offset:3px;}
+  .match-tap-hint{
+    margin-top:14px; font-size:13px; color:var(--steel); font-weight:700;
+    text-align:center;
+  }
+
+  /* ---------- Money moment ---------- */
+  .money-banner{
+    position:fixed; left:0; right:0; top:40%;
+    display:flex; justify-content:center;
+    pointer-events:none; z-index:40;
+    opacity:0;
+  }
+  .money-banner.play{animation:money-fade 6.4s ease forwards;}
+  .money-banner span{
+    display:inline-block; white-space:nowrap;
+    font-size:clamp(22px,5.6vw,40px); font-weight:800; letter-spacing:.02em;
+    color:var(--brass);
+    text-shadow:0 2px 18px rgba(0,0,0,.35), 0 0 26px rgba(201,162,39,.5);
+    transform:translateX(-110vw);
+  }
+  .money-banner.play span{animation:money-roll 6.4s cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes money-fade{
+    0%{opacity:0;} 6%{opacity:1;} 82%{opacity:1;} 100%{opacity:0;}
+  }
+  @keyframes money-roll{
+    0%{transform:translateX(-110vw);}
+    50%{transform:translateX(0);}
+    85%{transform:translateX(0);}
+    100%{transform:translateX(110vw);}
+  }
+
+  /* ---------- Glossary popover ---------- */
+  .glossary-pop{
+    position:fixed; max-width:250px; background:var(--navy-deep); color:var(--white);
+    padding:10px 12px; border-radius:10px; font-size:13.5px; line-height:1.4;
+    box-shadow:0 8px 22px rgba(0,0,0,.3); z-index:60; display:none;
+    border:1px solid var(--brass);
+  }
+  .glossary-pop.show{display:block;}
+  .glossary-pop b{color:var(--brass); text-transform:capitalize;}
+
+  /* ---------- Footer ---------- */
+  footer{
+    text-align:center; padding:26px 16px 34px; color:var(--slate); font-size:12.5px;
+  }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  @media (max-width:600px){
+    .card-panel{
+      position:fixed; inset:0; max-width:none; border-radius:0; max-height:none;
+      transform:translateY(100%);
+    }
+    .stage.card-open .card-panel{transform:translateY(0);}
+    .sorter-cols{grid-template-columns:1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .gear-spin--cw,.gear-spin--ccw{animation:none !important;}
+    .machine.synced .gear-spin--cw,.machine.synced .gear-spin--ccw{animation:none !important;}
+    .money-banner.play span{animation-duration:.01ms; transform:translateX(0);}
+    .card-panel,.gear-scale{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hero">
+    <img class="hero-photo" id="hero-photo" src="assets/hero-independence-hall.webp" alt="" aria-hidden="true">
+    <div class="hero-scrim" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Unit 3 &middot; The Constitution</div>
+      <h1>The Principles Machine</h1>
+      <p class="sub">Seven gears, seven ideas that hold the Constitution together. Click a gear to see it turn.</p>
+      <div class="mode-toggle" role="group" aria-label="Choose a mode">
+        <button type="button" id="btn-explore" aria-pressed="true">Explore the Machine</button>
+        <button type="button" id="btn-match" aria-pressed="false">Match It</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="dim-overlay" id="dim-overlay"></div>
+
+    <!-- Explore mode -->
+    <div id="explore-view">
+      <div class="progress-row" id="progress-row" aria-hidden="true"></div>
+      <div class="machine-wrap">
+        <svg id="machine-svg" viewBox="0 0 600 600" role="group" aria-label="Seven gears, one per constitutional principle"></svg>
+      </div>
+      <div class="gear-grid" id="gear-grid"></div>
+    </div>
+
+    <!-- Match It mode -->
+    <div id="match-view" style="display:none;">
+      <div class="machine-wrap">
+        <svg id="machine-svg-match" viewBox="0 0 600 600" role="group" aria-label="Seven gears — tap the one that matches the scenario"></svg>
+      </div>
+      <div class="gear-grid" id="gear-grid-match"></div>
+
+      <div class="match-panel">
+        <div class="match-card">
+          <div class="match-top">
+            <span class="streak">🔥 Streak <b id="streak-count">0</b></span>
+            <span class="match-instructions">Tap the gear that matches</span>
+          </div>
+          <p class="scenario-text" id="scenario-text"></p>
+          <p class="match-tap-hint" id="match-tap-hint">👆 Tap a gear above to answer</p>
+          <div class="match-feedback" id="match-feedback">
+            <span class="mf-icon" id="mf-icon"></span>
+            <div>
+              <div class="mf-title" id="mf-title"></div>
+              <div class="mf-tip" id="mf-tip"></div>
+            </div>
+          </div>
+          <button type="button" class="next-btn" id="next-btn">Next scenario →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card panel (Explore mode) -->
+    <div class="card-panel" id="card-panel" role="dialog" aria-modal="false" aria-labelledby="card-title">
+      <div class="card-inner" id="card-inner"></div>
+    </div>
+
+    <div class="money-banner" id="money-banner"><span>&hellip;a more perfect Union</span></div>
+  </main>
+
+  <div aria-live="polite" class="sr-only" id="live-region"></div>
+
+  <footer>Made for 8th Grade U.S. History &middot; TEKS 8.15D, 8.19A, 8.29B</footer>
+</div>
+
+<div class="glossary-pop" id="glossary-pop" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   ICONS — small coded pictograms, navy/brass duotone
+   ============================================================ */
+var ICON = {
+  sovereignty: '<svg viewBox="0 0 100 100"><rect x="20" y="52" width="60" height="34" rx="4" fill="#1B2A4A"/><rect x="44" y="58" width="12" height="5" fill="#10203C"/><rect x="34" y="18" width="26" height="17" rx="2" fill="#C9A227" transform="rotate(-8 47 26)"/><path d="M50 37 L50 55" stroke="#2E74B5" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 5"/><path d="M43 49 L50 58 L57 49" fill="none" stroke="#2E74B5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  limited: '<svg viewBox="0 0 100 100"><rect x="30" y="34" width="40" height="34" fill="#1B2A4A"/><path d="M30 34 L50 20 L70 34 Z" fill="#10203C"/><rect x="44" y="48" width="12" height="20" fill="#C9A227" opacity=".85"/><g stroke="#5B6770" stroke-width="3" stroke-linecap="round"><path d="M10 90 V64 M10 64 L18 58 L18 90 M18 64 L10 58"/><path d="M26 90 V64 M26 64 L34 58 L34 90 M34 64 L26 58"/><path d="M66 90 V64 M66 64 L74 58 L74 90 M74 64 L66 58"/><path d="M82 90 V64 M82 64 L90 58 L90 90 M90 64 L82 58"/><path d="M6 68 H94 M6 82 H94"/></g></svg>',
+  republicanism: '<svg viewBox="0 0 100 100"><circle cx="76" cy="30" r="9" fill="#C9A227"/><path d="M64 60 Q76 42 76 42" fill="none"/><path d="M62 62 C62 48 90 48 90 62 L90 70 L62 70 Z" fill="#10203C"/><g fill="#1B2A4A"><circle cx="16" cy="46" r="7"/><rect x="9" y="54" width="14" height="20" rx="4"/><circle cx="36" cy="46" r="7"/><rect x="29" y="54" width="14" height="20" rx="4"/><circle cx="56" cy="40" r="8"/><rect x="48" y="49" width="16" height="24" rx="4" fill="#2E74B5"/></g><path d="M56 34 L68 24" stroke="#C9A227" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/><path d="M63 22 L68 24 L66 30" fill="none" stroke="#C9A227" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  separation: '<svg viewBox="0 0 100 100"><rect x="4" y="30" width="26" height="56" fill="#1B2A4A"/><rect x="37" y="20" width="26" height="66" fill="#10203C"/><rect x="70" y="30" width="26" height="56" fill="#1B2A4A"/><rect x="0" y="18" width="100" height="7" fill="#C9A227" opacity=".85"/><circle cx="21" cy="60" r="8" fill="none" stroke="#2E74B5" stroke-width="3"/><circle cx="50" cy="55" r="8" fill="none" stroke="#C9A227" stroke-width="3"/><circle cx="79" cy="60" r="8" fill="none" stroke="#2E74B5" stroke-width="3"/></svg>',
+  checks: '<svg viewBox="0 0 100 100"><g fill="none" stroke="#1B2A4A" stroke-width="7" stroke-linecap="round"><path d="M50 14 A36 36 0 0 1 82 34" /><path d="M82 66 A36 36 0 0 1 50 86" /><path d="M18 34 A36 36 0 0 1 18 66" /></g><g fill="#C9A227"><path d="M82 34 L74 24 L90 22 Z"/><path d="M50 86 L60 94 L58 78 Z"/><path d="M18 66 L26 76 L10 78 Z"/></g></svg>',
+  federalism: '<svg viewBox="0 0 100 100"><path d="M12 30 Q50 10 88 30 Q94 55 88 82 Q50 96 12 82 Q6 55 12 30 Z" fill="#EFF3F8" stroke="#2E74B5" stroke-width="2.5"/><path d="M50 26 V70" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/><path d="M50 26 L72 33 L50 42 Z" fill="#C9A227"/><g stroke="#1B2A4A" stroke-width="2" stroke-linecap="round"><path d="M24 50 V72"/><path d="M76 50 V72"/><path d="M34 62 V78"/></g><path d="M24 50 L34 53.5 L24 57 Z" fill="#2E74B5"/><path d="M76 50 L86 53.5 L76 57 Z" fill="#2E74B5"/><path d="M34 62 L42 64.5 L34 67 Z" fill="#2E74B5"/></svg>',
+  rights: '<svg viewBox="0 0 100 100"><path d="M50 10 L86 24 V50 C86 74 70 88 50 96 C30 88 14 74 14 50 V24 Z" fill="#1B2A4A"/><path d="M50 10 L86 24 V50 C86 74 70 88 50 96 Z" fill="#10203C" opacity=".55"/><circle cx="50" cy="46" r="11" fill="#C9A227"/><path d="M32 78 C32 62 68 62 68 78" fill="#C9A227"/></svg>'
+};
+
+function iconFor(id){ return ICON[id] || ''; }
+
+/* ============================================================
+   GLOSSARY — tap bubble helper
+   ============================================================ */
+var GLOSSARY = {
+  sovereignty:'The power to rule and make final decisions.',
+  veto:'When the President says "no" to a bill Congress passed, stopping it — unless Congress overrides it.',
+  federal:'Having to do with the national government — the one for the whole country, not just one state.'
+};
+function term(word, key){
+  return '<button type="button" class="term" data-term="'+key+'">'+word+'</button>';
+}
+
+/* ============================================================
+   DATA — Section 3.1 (verbatim) + Section 3.3 (verbatim)
+   ============================================================ */
+var GEARS = [
+  {
+    id:'sovereignty', name:'Popular Sovereignty', short:'Popular\nSovereignty',
+    definition:'The government’s power comes from the people. We are the source.',
+    pictureExample:'A ballot dropping into a box; the words “We the People.”',
+    spotIt:'Election Day: citizens vote, and the government’s authority flows from those votes.',
+    dontConfuse:'<b>Republicanism</b> — that’s about <b>electing representatives</b>; popular '+term('sovereignty','sovereignty')+' is about <b>where power comes from</b>.',
+    hero:'assets/card-popular-sovereignty.webp'
+  },
+  {
+    id:'limited', name:'Limited Government', short:'Limited\nGovernment',
+    definition:'The government only has the powers the Constitution gives it. No one is above the law — this prevents tyranny.',
+    pictureExample:'A fence drawn around a government building.',
+    spotIt:'Congress cannot pass a law that takes away free speech — the Constitution says what it can and cannot do.',
+    dontConfuse:'<b>Individual rights</b> — rights protect <b>you</b>; limited government restrains <b>them</b>.',
+    hero:null
+  },
+  {
+    id:'republicanism', name:'Republicanism', short:'Republicanism',
+    definition:'Citizens elect representatives to govern for them, and those representatives swear to uphold the Constitution.',
+    pictureExample:'A crowd pointing to one chosen person heading to a capitol.',
+    spotIt:'You don’t vote on every law — you elect Senators and Representatives in regular elections to vote for you.',
+    dontConfuse:'<b>Democracy in general</b> — the key word is <b>elected representatives</b>.',
+    hero:null
+  },
+  {
+    id:'separation', name:'Separation of Powers', short:'Separation\nof Powers',
+    definition:'Government power is split among three branches: Legislative <b>makes</b> laws, Executive <b>enforces</b> laws, Judicial <b>interprets</b> laws.',
+    pictureExample:'Three doors labeled Congress, President, Courts.',
+    spotIt:'Congress writes the law; the President carries it out; the courts decide what it means.',
+    dontConfuse:'<b>Checks and balances</b> — separation <b>divides</b> the jobs; checks let branches <b>block</b> each other.',
+    hero:'assets/card-separation-of-powers.webp'
+  },
+  {
+    id:'checks', name:'Checks and Balances', short:'Checks &amp;\nBalances',
+    definition:'Each branch can limit the others, so no branch gets too powerful.',
+    pictureExample:'Three arrows forming a triangle, each pushing back.',
+    spotIt:'The President '+term('vetoes','veto')+' a bill — but Congress can override the veto with a two-thirds vote.',
+    dontConfuse:'<b>Separation of powers</b> (see above — this is the <b>pushback</b>, not the split).',
+    hero:null
+  },
+  {
+    id:'federalism', name:'Federalism', short:'Federalism',
+    definition:'Power is divided and shared between the national government and the states.',
+    pictureExample:'A map: one big flag over fifty small ones.',
+    spotIt:'The '+term('federal','federal')+' government runs the military; your state runs public schools; both collect taxes.',
+    dontConfuse:'<b>Separation of powers</b> — federalism splits power between <b>levels</b> (national/state), not branches.',
+    hero:'assets/card-federalism.webp'
+  },
+  {
+    id:'rights', name:'Individual Rights', short:'Individual\nRights',
+    definition:'Personal freedoms the government must protect, guaranteed to citizens by the Constitution.',
+    pictureExample:'A shield over a single person.',
+    spotIt:'Trial by jury. Freedom of religion. The Bill of Rights is this principle written down.',
+    dontConfuse:'<b>Limited government</b> — connected, but this gear names <b>your protections</b> specifically.',
+    hero:'assets/card-individual-rights.webp'
+  }
+];
+var GEAR_BY_ID = {};
+GEARS.forEach(function(g){ GEAR_BY_ID[g.id]=g; });
+
+var SORTER_CHIPS = [
+  {id:'declare-war', label:'Declare war', zone:'delegated'},
+  {id:'coin-money', label:'Coin money', zone:'delegated'},
+  {id:'public-ed', label:'Public education', zone:'reserved'},
+  {id:'marriage-driving', label:'Marriage &amp; driving laws', zone:'reserved'},
+  {id:'collect-taxes', label:'Collect taxes', zone:'concurrent'},
+  {id:'build-roads', label:'Build roads', zone:'concurrent'}
+];
+
+var SCENARIOS = [
+  {text:'The Constitution opens with “We the People.”', answer:'sovereignty', tip:'The power source is named in the first three words.'},
+  {text:'Your class elects one student to represent it on student council.', answer:'republicanism', tip:'Chosen representatives act for the group.'},
+  {text:'The President vetoes a bill Congress passed.', answer:'checks', tip:'One branch blocking another = a check.'},
+  {text:'Congress overrides that veto with a two-thirds vote.', answer:'checks', tip:'The check gets checked right back.'},
+  {text:'Congress makes laws; courts interpret them; the President enforces them.', answer:'separation', tip:'Three different jobs, three branches — no blocking here, just division.'},
+  {text:'Your state sets school rules while Congress runs the post office.', answer:'federalism', tip:'Two levels of government, each with its own lane.'},
+  {text:'A court says a law breaks the Constitution, so the law dies.', answer:'checks', tip:'Courts checking Congress — judicial review.'},
+  {text:'The Constitution lists exactly which powers Congress has — nothing more.', answer:'limited', tip:'The fence around power.'},
+  {text:'You cannot be forced to house soldiers in peacetime.', answer:'rights', tip:'A personal protection, written down.'},
+  {text:'Citizens vote in regular elections for Senators.', answer:'republicanism', tip:'Voting is the act — but “elected representatives” makes this Republicanism. (Popular sovereignty is why you get to vote at all; republicanism is how you use it.)'},
+  {text:'Both the U.S. and Texas collect taxes from the same paycheck.', answer:'federalism', tip:'A concurrent (shared) power.'},
+  {text:'Even the President must obey a court order.', answer:'limited', tip:'No one is above the law.'}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var state = {
+  mode:'explore',
+  openGearId:null,
+  exploreOpened:{},
+  openedCount:0,
+  moneyMomentPlayed:false,
+  matchQueue:[],
+  matchPos:0,
+  matchStreak:0,
+  matchAnswered:false
+};
+
+/* ============================================================
+   GEAR GEOMETRY
+   ============================================================ */
+var GEAR_R = 64;
+var CENTER = {x:300,y:300};
+var RING_D = GEAR_R*2;
+var RING_ORDER = ['limited','republicanism','separation','checks','federalism','rights'];
+
+function ringPos(k){
+  var deg = -90 + 60*k;
+  var rad = deg*Math.PI/180;
+  return { x: CENTER.x + RING_D*Math.cos(rad), y: CENTER.y + RING_D*Math.sin(rad) };
+}
+
+function gearToothPath(rOuter, rInner, teeth){
+  var d = '';
+  var step = 2*Math.PI/teeth;
+  for(var i=0;i<teeth;i++){
+    var a0 = i*step;
+    var a1 = a0 + step*0.15;
+    var a2 = a0 + step*0.35;
+    var a3 = a0 + step*0.65;
+    var a4 = a0 + step*0.85;
+    var pts = [
+      [a0,rInner],[a1,rInner],[a2,rOuter],[a3,rOuter],[a4,rInner]
+    ];
+    pts.forEach(function(p){
+      var x = Math.cos(p[0])*p[1];
+      var y = Math.sin(p[0])*p[1];
+      d += (d?'L':'M') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+    });
+  }
+  d += 'Z';
+  return d;
+}
+var TOOTH_PATH = gearToothPath(GEAR_R, GEAR_R*0.80, 11);
+var TOOTH_PATH_HUB = gearToothPath(GEAR_R, GEAR_R*0.80, 13);
+
+function gearMarkup(gear, cx, cy, spinClass, pathD, opened){
+  var lines = gear.short.split('\n');
+  var tspans = lines.map(function(line,i){
+    var dy = lines.length===1 ? 0 : (i===0 ? -7 : 14);
+    return '<tspan x="0" dy="'+dy+'">'+line+'</tspan>';
+  }).join('');
+  return (
+    '<g class="gear'+(opened?' opened':'')+'" data-gear="'+gear.id+'" tabindex="0" role="button" aria-label="'+gear.name+(opened?' — opened':'')+'" transform="translate('+cx+' '+cy+')">'+
+      '<g class="gear-scale">'+
+        '<g class="gear-spin '+spinClass+'">'+
+          '<path class="gear-teeth" d="'+pathD+'"/>'+
+        '</g>'+
+        '<circle class="gear-hub" r="'+(GEAR_R*0.34)+'"/>'+
+        '<circle class="gear-rim" r="'+(GEAR_R*0.97)+'"/>'+
+        '<circle class="gear-bore" r="'+(GEAR_R*0.34)+'"/>'+
+      '</g>'+
+      '<text class="gear-label">'+tspans+'</text>'+
+      '<text class="gear-check" x="'+(GEAR_R*0.62)+'" y="'+(-GEAR_R*0.62)+'" font-size="20" text-anchor="middle">✅</text>'+
+      '<circle class="gear-hit" r="'+GEAR_R+'"/>'+
+    '</g>'
+  );
+}
+
+function buildMachineSVG(){
+  var hub = GEAR_BY_ID.sovereignty;
+  var svg = gearMarkup(hub, CENTER.x, CENTER.y, 'gear-spin--cw', TOOTH_PATH_HUB, !!state.exploreOpened[hub.id]);
+  RING_ORDER.forEach(function(id,k){
+    var g = GEAR_BY_ID[id];
+    var p = ringPos(k);
+    svg += gearMarkup(g, p.x, p.y, 'gear-spin--ccw', TOOTH_PATH, !!state.exploreOpened[id]);
+  });
+  return svg;
+}
+
+function buildGearGrid(){
+  var order = ['sovereignty'].concat(RING_ORDER);
+  return order.map(function(id){
+    var g = GEAR_BY_ID[id];
+    return '<button type="button" class="gear-chip'+(state.exploreOpened[id]?' opened':'')+'" data-gear="'+id+'" aria-label="'+g.name+(state.exploreOpened[id]?' — opened':'')+'">'+
+      '<span class="chip-icon">'+iconFor(id)+'</span>'+
+      '<span class="gear-chip-label">'+g.name+(state.exploreOpened[id]?' ✅':'')+'</span>'+
+    '</button>';
+  }).join('');
+}
+
+function renderMachines(){
+  document.getElementById('machine-svg').innerHTML = buildMachineSVG();
+  document.getElementById('machine-svg-match').innerHTML = buildMachineSVG();
+  document.getElementById('gear-grid').innerHTML = buildGearGrid();
+  document.getElementById('gear-grid-match').innerHTML = buildGearGrid();
+  wireGearNodes();
+}
+
+function renderProgress(){
+  var row = document.getElementById('progress-row');
+  var order = ['sovereignty'].concat(RING_ORDER);
+  var html = order.map(function(id){
+    return '<span class="progress-dot'+(state.exploreOpened[id]?' done':'')+'"></span>';
+  }).join('');
+  html += '<span class="progress-label">'+state.openedCount+' / 7 gears explored</span>';
+  row.innerHTML = html;
+}
+
+/* ============================================================
+   GEAR INTERACTION WIRING
+   ============================================================ */
+function allGearNodes(){
+  return document.querySelectorAll('[data-gear]');
+}
+
+function markActive(id){
+  document.querySelectorAll('.gear').forEach(function(node){
+    node.classList.toggle('active', id && node.getAttribute('data-gear')===id);
+  });
+  document.querySelectorAll('#machine-svg, #machine-svg-match').forEach(function(svgEl){
+    svgEl.classList.toggle('engaged', !!id);
+  });
+}
+
+function wireGearNodes(){
+  allGearNodes().forEach(function(node){
+    var id = node.getAttribute('data-gear');
+    node.addEventListener('click', function(){ handleGearActivate(id); });
+    node.addEventListener('keydown', function(e){
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        handleGearActivate(id);
+      }
+    });
+    if(node.tagName.toLowerCase()==='g'){
+      node.addEventListener('mouseenter', function(){ if(state.mode==='explore' && !state.openGearId) markActive(id); });
+      node.addEventListener('mouseleave', function(){ if(!state.openGearId) markActive(null); });
+      node.addEventListener('focus', function(){ if(!state.openGearId) markActive(id); });
+      node.addEventListener('blur', function(){ if(!state.openGearId) markActive(null); });
+    }
+  });
+}
+
+function handleGearActivate(id){
+  if(state.mode==='explore'){
+    openCard(id);
+  } else {
+    answerScenario(id);
+  }
+}
+
+/* ============================================================
+   EXPLORE MODE — cards
+   ============================================================ */
+function pictureIconMarkup(id){
+  return iconFor(id);
+}
+
+function renderCardContent(gear){
+  var heroHtml = gear.hero ? '<div class="card-hero"><img src="'+gear.hero+'" alt="'+gear.name+' illustration"></div>' : '';
+  var sorterHtml = gear.id==='federalism' ? renderSorterMarkup() : '';
+  return (
+    '<div class="card-topline">'+
+      '<div><div class="card-eyebrow">Gear '+( ['sovereignty'].concat(RING_ORDER).indexOf(gear.id)+1 )+' of 7</div>'+
+      '<h2 id="card-title" tabindex="-1">'+gear.name+'</h2></div>'+
+      '<button type="button" class="card-close" id="card-close" aria-label="Close card">&times;</button>'+
+    '</div>'+
+    heroHtml+
+    '<div class="card-section"><div class="k">Plain words</div><p>'+gear.definition+'</p></div>'+
+    '<div class="card-section"><div class="k">Picture it</div>'+
+      '<div class="picture-row"><span class="pict-icon">'+pictureIconMarkup(gear.id)+'</span><p>'+gear.pictureExample+'</p></div>'+
+    '</div>'+
+    '<div class="card-section"><div class="k">Spot it in real life</div><p>'+gear.spotIt+'</p></div>'+
+    '<div class="confuse-box"><span class="flag">⚠️</span><p><b>Don’t confuse it with:</b> '+gear.dontConfuse+'</p></div>'+
+    sorterHtml
+  );
+}
+
+function openCard(id){
+  var gear = GEAR_BY_ID[id];
+  state.openGearId = id;
+  if(!state.exploreOpened[id]){
+    state.exploreOpened[id] = true;
+    state.openedCount++;
+  }
+  document.getElementById('card-inner').innerHTML = renderCardContent(gear);
+  document.getElementById('stage').classList.add('card-open');
+  wireCardClose();
+  wireGlossaryTerms(document.getElementById('card-inner'));
+  if(gear.id==='federalism') wireSorter();
+  renderProgress();
+  renderMachines();
+  markActive(id);
+  var title = document.getElementById('card-title');
+  if(title) title.focus();
+  announce(gear.name + ' card opened.');
+
+  if(state.openedCount===7 && !state.moneyMomentPlayed){
+    state.moneyMomentPlayed = true;
+    setTimeout(playMoneyMoment, 550);
+  }
+}
+
+function closeCard(){
+  document.getElementById('stage').classList.remove('card-open');
+  markActive(null);
+  var id = state.openGearId;
+  state.openGearId = null;
+  renderMachines();
+  if(id){
+    var node = document.querySelector('.gear[data-gear="'+id+'"]');
+    if(node) node.focus();
+  }
+}
+
+function wireCardClose(){
+  document.getElementById('card-close').addEventListener('click', closeCard);
+}
+document.getElementById('dim-overlay').addEventListener('click', function(){
+  if(document.getElementById('stage').classList.contains('card-open')) closeCard();
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('stage').classList.contains('card-open')) closeCard();
+});
+
+/* ============================================================
+   FEDERALISM DEEP-TAP SORTER
+   ============================================================ */
+var sorterState = {};
+function renderSorterMarkup(){
+  return (
+    '<div class="sorter">'+
+      '<h3>Power Sorter</h3>'+
+      '<p class="sorter-sub">Tap a chip to move it. Where does each power belong?</p>'+
+      '<div class="sorter-tray" id="sorter-tray"></div>'+
+      '<div class="sorter-cols">'+
+        '<div class="sorter-col"><h4>Delegated</h4><span class="hint">national</span><div class="zone-body" data-zone="delegated"></div></div>'+
+        '<div class="sorter-col"><h4>Reserved</h4><span class="hint">states</span><div class="zone-body" data-zone="reserved"></div></div>'+
+        '<div class="sorter-col"><h4>Concurrent</h4><span class="hint">both</span><div class="zone-body" data-zone="concurrent"></div></div>'+
+      '</div>'+
+    '</div>'
+  );
+}
+
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+
+function wireSorter(){
+  sorterState = {};
+  SORTER_CHIPS.forEach(function(c){ sorterState[c.id] = 'tray'; });
+  var order = shuffle(SORTER_CHIPS.map(function(c){return c.id;}));
+  order.forEach(renderChipInZone);
+}
+
+function renderChipInZone(chipId){
+  var chip = SORTER_CHIPS.filter(function(c){return c.id===chipId;})[0];
+  var zone = sorterState[chipId];
+  var host = zone==='tray' ? document.getElementById('sorter-tray') : document.querySelector('.zone-body[data-zone="'+zone+'"]');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'chip';
+  btn.setAttribute('data-chip', chipId);
+  var placed = zone!=='tray';
+  var correct = placed && zone===chip.zone;
+  if(placed) btn.classList.add(correct ? 'correct' : 'incorrect');
+  btn.innerHTML = (placed ? '<span class="mark">'+(correct?'✓':'✗')+'</span>' : '') + chip.label;
+  btn.setAttribute('aria-label', chip.label + (placed ? (correct? ' — correctly placed in '+zone : ' — placed in '+zone+', try again') : ' — not yet sorted'));
+  btn.addEventListener('click', function(){ cycleChip(chipId); });
+  host.appendChild(btn);
+}
+
+var ZONE_CYCLE = ['tray','delegated','reserved','concurrent'];
+function cycleChip(chipId){
+  var cur = sorterState[chipId];
+  var idx = ZONE_CYCLE.indexOf(cur);
+  var next = ZONE_CYCLE[(idx+1) % ZONE_CYCLE.length];
+  sorterState[chipId] = next;
+  var oldBtn = document.querySelector('.chip[data-chip="'+chipId+'"]');
+  if(oldBtn) oldBtn.remove();
+  renderChipInZone(chipId);
+}
+
+/* ============================================================
+   GLOSSARY TAP-BUBBLES
+   ============================================================ */
+function wireGlossaryTerms(scope){
+  scope.querySelectorAll('.term').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      showGlossary(btn);
+    });
+  });
+}
+function showGlossary(btn){
+  var key = btn.getAttribute('data-term');
+  var pop = document.getElementById('glossary-pop');
+  if(pop.classList.contains('show') && pop._forBtn===btn){
+    hideGlossary(); return;
+  }
+  pop.innerHTML = '<b>'+key+':</b> '+GLOSSARY[key];
+  pop.classList.add('show');
+  pop._forBtn = btn;
+  var r = btn.getBoundingClientRect();
+  var vw = window.innerWidth || document.documentElement.clientWidth || 320;
+  var vh = window.innerHeight || document.documentElement.clientHeight || 640;
+  var top = r.bottom + 8;
+  var maxLeft = Math.max(8, vw-258);
+  var left = Math.min(Math.max(8, r.left), maxLeft);
+  if(top + 90 > vh) top = Math.max(8, r.top - 96);
+  pop.style.top = top+'px';
+  pop.style.left = left+'px';
+}
+function hideGlossary(){
+  var pop = document.getElementById('glossary-pop');
+  pop.classList.remove('show');
+  pop._forBtn = null;
+}
+document.addEventListener('click', function(e){
+  var pop = document.getElementById('glossary-pop');
+  if(pop.classList.contains('show') && !pop.contains(e.target) && !e.target.classList.contains('term')){
+    hideGlossary();
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') hideGlossary();
+});
+
+/* ============================================================
+   MONEY MOMENT
+   ============================================================ */
+function playMoneyMoment(){
+  document.querySelectorAll('#machine-svg, #machine-svg-match').forEach(function(s){ s.classList.add('synced'); });
+  var banner = document.getElementById('money-banner');
+  banner.classList.remove('play'); void banner.offsetWidth;
+  banner.classList.add('play');
+  announce('All seven gears explored. …a more perfect Union.');
+  setTimeout(function(){
+    document.querySelectorAll('#machine-svg, #machine-svg-match').forEach(function(s){ s.classList.remove('synced'); });
+    banner.classList.remove('play');
+  }, 6600);
+}
+
+/* ============================================================
+   MODE TOGGLE
+   ============================================================ */
+document.getElementById('btn-explore').addEventListener('click', function(){ setMode('explore'); });
+document.getElementById('btn-match').addEventListener('click', function(){ setMode('match'); });
+
+function setMode(mode){
+  if(state.mode===mode) return;
+  if(document.getElementById('stage').classList.contains('card-open')) closeCard();
+  state.mode = mode;
+  document.getElementById('btn-explore').setAttribute('aria-pressed', String(mode==='explore'));
+  document.getElementById('btn-match').setAttribute('aria-pressed', String(mode==='match'));
+  document.getElementById('explore-view').style.display = mode==='explore' ? '' : 'none';
+  document.getElementById('match-view').style.display = mode==='match' ? '' : 'none';
+  if(mode==='match'){
+    state.matchStreak = 0;
+    state.matchQueue = shuffle(SCENARIOS.map(function(s,i){return i;}));
+    state.matchPos = 0;
+    updateStreakUI();
+    showScenario();
+  } else {
+    markActive(null);
+  }
+}
+
+/* ============================================================
+   MATCH IT
+   ============================================================ */
+function showScenario(){
+  if(state.matchPos >= state.matchQueue.length){
+    state.matchQueue = shuffle(SCENARIOS.map(function(s,i){return i;}));
+    state.matchPos = 0;
+  }
+  var idx = state.matchQueue[state.matchPos];
+  var scenario = SCENARIOS[idx];
+  document.getElementById('scenario-text').textContent = scenario.text;
+  document.getElementById('match-feedback').className = 'match-feedback';
+  document.getElementById('next-btn').className = 'next-btn';
+  document.getElementById('match-tap-hint').style.display = '';
+  state.matchAnswered = false;
+  markActive(null);
+}
+
+function answerScenario(gearId){
+  if(state.matchAnswered) return;
+  state.matchAnswered = true;
+  state.matchTotalAnswered++;
+  var idx = state.matchQueue[state.matchPos];
+  var scenario = SCENARIOS[idx];
+  var correct = gearId === scenario.answer;
+  document.getElementById('match-tap-hint').style.display = 'none';
+
+  var fb = document.getElementById('match-feedback');
+  var icon = document.getElementById('mf-icon');
+  var title = document.getElementById('mf-title');
+  var tip = document.getElementById('mf-tip');
+
+  if(correct){
+    state.matchStreak++;
+    fb.className = 'match-feedback show correct';
+    icon.textContent = '✅';
+    title.textContent = 'Yes! ' + GEAR_BY_ID[scenario.answer].name;
+    tip.textContent = scenario.tip;
+    markActive(gearId);
+    flashGear(gearId, true);
+    announce('Correct. '+GEAR_BY_ID[scenario.answer].name+'. Streak '+state.matchStreak+'.');
+  } else {
+    state.matchStreak = 0;
+    fb.className = 'match-feedback show incorrect';
+    icon.textContent = '❌';
+    title.textContent = 'Not quite — that’s ' + GEAR_BY_ID[scenario.answer].name;
+    tip.textContent = scenario.tip;
+    flashGear(gearId, false);
+    flashGear(scenario.answer, true);
+    announce('Not quite. The answer is '+GEAR_BY_ID[scenario.answer].name+'. '+scenario.tip);
+  }
+  updateStreakUI();
+  document.getElementById('next-btn').className = 'next-btn show';
+}
+
+function flashGear(id, isCorrect){
+  document.querySelectorAll('[data-gear="'+id+'"]').forEach(function(node){
+    node.classList.add(isCorrect ? 'flash-correct' : 'flash-incorrect');
+    var teeth = node.querySelector ? node.querySelector('.gear-teeth') : null;
+    if(teeth) teeth.style.fill = isCorrect ? '#2F7D4F' : '#B23A48';
+    if(node.classList.contains('gear-chip')) node.style.borderColor = isCorrect ? '#2F7D4F' : '#B23A48';
+    setTimeout(function(){
+      if(teeth) teeth.style.fill = '';
+      if(node.classList && node.classList.contains('gear-chip')) node.style.borderColor = '';
+      node.classList.remove('flash-correct','flash-incorrect');
+    }, 1400);
+  });
+}
+
+function updateStreakUI(){
+  document.getElementById('streak-count').textContent = state.matchStreak;
+}
+
+document.getElementById('next-btn').addEventListener('click', function(){
+  state.matchPos++;
+  showScenario();
+});
+
+function announce(msg){
+  document.getElementById('live-region').textContent = msg;
+}
+
+/* ============================================================
+   HERO IMAGE FALLBACK — hide gracefully if asset missing
+   ============================================================ */
+function wireImageFallbacks(){
+  document.querySelectorAll('img').forEach(function(img){
+    img.addEventListener('error', function(){
+      var wrap = img.closest('.card-hero');
+      if(wrap) wrap.style.display='none';
+      if(img.id==='hero-photo') img.style.display='none';
+    });
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderMachines();
+renderProgress();
+wireImageFallbacks();
+
+})();
+</script>
+</body>
+</html>
