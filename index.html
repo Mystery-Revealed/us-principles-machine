@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Principles Machine</title>
 <meta name="description" content="Click a gear to learn a constitutional principle. Seven gears, seven principles, one machine.">
 <style>
@@ -105,21 +105,17 @@
 
   .gear{cursor:pointer;}
   .gear:focus-visible .gear-hit{outline:3px solid var(--steel); outline-offset:2px;}
-  .gear-spin{transform-origin:0 0;}
-  .gear-spin--cw{animation:spin-cw 24s linear infinite;}
-  .gear-spin--ccw{animation:spin-ccw 24s linear infinite;}
-  .engaged .gear-spin--cw{animation-duration:52s;}
-  .engaged .gear-spin--ccw{animation-duration:52s;}
-  .synced .gear-spin--cw,
-  .synced .gear-spin--ccw{animation:spin-cw 10s linear infinite;}
-  @keyframes spin-cw{ to{ transform:rotate(360deg); } }
-  @keyframes spin-ccw{ to{ transform:rotate(-360deg); } }
+  /* rotation is driven by the JS gear engine via the SVG transform
+     ATTRIBUTE (rotates about the local origin, where each gear's geometry
+     is centered — CSS transform-origin on SVG children resolves against
+     the viewBox and would pivot wrong). .gear-spin--cw/--ccw are the
+     direction markers the engine reads. */
 
   .gear-teeth{fill:var(--navy); transition:fill .2s;}
   .gear-hub{fill:var(--navy-deep);}
   .gear-rim{fill:none; stroke:var(--brass); stroke-width:2.5; opacity:.85;}
   .gear-bore{fill:none; stroke:var(--brass); stroke-width:1.6; opacity:.55;}
-  .gear-scale{transition:transform .3s cubic-bezier(.34,1.56,.64,1); transform-origin:0 0;}
+  .gear-scale{transition:transform .3s cubic-bezier(.34,1.56,.64,1); transform-box:fill-box; transform-origin:center;}
   .gear.active .gear-scale{transform:scale(1.16);}
   .gear.active .gear-teeth{fill:var(--steel);}
   .gear.opened .gear-rim{stroke:var(--brass); opacity:1; stroke-width:3.5;}
@@ -164,7 +160,7 @@
 
   /* ---------- Card panel ---------- */
   .card-panel{
-    position:absolute; left:0; right:0; bottom:0;
+    position:fixed; left:0; right:0; bottom:0;
     max-width:640px; margin:0 auto;
     background:var(--white);
     border-radius:20px 20px 0 0;
@@ -204,12 +200,13 @@
   .picture-row .pict-icon svg{width:100%;height:100%;}
 
   .confuse-box{
-    margin-top:16px; background:#FCF6E4; border:1px solid #EAD9A0;
+    margin-top:16px; background:var(--paper); border:1px solid #D7DEE8;
+    border-left:4px solid var(--brass);
     border-radius:12px; padding:12px 14px; display:flex; gap:10px;
   }
   .confuse-box .flag{font-size:18px; flex:none;}
-  .confuse-box p{font-size:14.5px; color:#5C4A12;}
-  .confuse-box b{color:#4A3B0E;}
+  .confuse-box p{font-size:14.5px; color:var(--ink);}
+  .confuse-box b{color:var(--navy);}
 
   .term{
     background:none; border:none; padding:0; margin:0; font:inherit;
@@ -341,8 +338,6 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .gear-spin--cw,.gear-spin--ccw{animation:none !important;}
-    .machine.synced .gear-spin--cw,.machine.synced .gear-spin--ccw{animation:none !important;}
     .money-banner.play span{animation-duration:.01ms; transform:translateX(0);}
     .card-panel,.gear-scale{transition:none !important;}
   }
@@ -429,7 +424,7 @@
 var ICON = {
   sovereignty: '<svg viewBox="0 0 100 100"><rect x="20" y="52" width="60" height="34" rx="4" fill="#1B2A4A"/><rect x="44" y="58" width="12" height="5" fill="#10203C"/><rect x="34" y="18" width="26" height="17" rx="2" fill="#C9A227" transform="rotate(-8 47 26)"/><path d="M50 37 L50 55" stroke="#2E74B5" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 5"/><path d="M43 49 L50 58 L57 49" fill="none" stroke="#2E74B5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   limited: '<svg viewBox="0 0 100 100"><rect x="30" y="34" width="40" height="34" fill="#1B2A4A"/><path d="M30 34 L50 20 L70 34 Z" fill="#10203C"/><rect x="44" y="48" width="12" height="20" fill="#C9A227" opacity=".85"/><g stroke="#5B6770" stroke-width="3" stroke-linecap="round"><path d="M10 90 V64 M10 64 L18 58 L18 90 M18 64 L10 58"/><path d="M26 90 V64 M26 64 L34 58 L34 90 M34 64 L26 58"/><path d="M66 90 V64 M66 64 L74 58 L74 90 M74 64 L66 58"/><path d="M82 90 V64 M82 64 L90 58 L90 90 M90 64 L82 58"/><path d="M6 68 H94 M6 82 H94"/></g></svg>',
-  republicanism: '<svg viewBox="0 0 100 100"><circle cx="76" cy="30" r="9" fill="#C9A227"/><path d="M64 60 Q76 42 76 42" fill="none"/><path d="M62 62 C62 48 90 48 90 62 L90 70 L62 70 Z" fill="#10203C"/><g fill="#1B2A4A"><circle cx="16" cy="46" r="7"/><rect x="9" y="54" width="14" height="20" rx="4"/><circle cx="36" cy="46" r="7"/><rect x="29" y="54" width="14" height="20" rx="4"/><circle cx="56" cy="40" r="8"/><rect x="48" y="49" width="16" height="24" rx="4" fill="#2E74B5"/></g><path d="M56 34 L68 24" stroke="#C9A227" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/><path d="M63 22 L68 24 L66 30" fill="none" stroke="#C9A227" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  republicanism: '<svg viewBox="0 0 100 100"><circle cx="76" cy="30" r="9" fill="#C9A227"/><path d="M64 60 Q76 42 76 42" fill="none"/><path d="M62 62 C62 48 90 48 90 62 L90 70 L62 70 Z" fill="#10203C"/><g fill="#1B2A4A"><circle cx="16" cy="46" r="7"/><rect x="9" y="54" width="14" height="20" rx="4"/><circle cx="36" cy="46" r="7"/><rect x="29" y="54" width="14" height="20" rx="4"/><circle cx="56" cy="40" r="8"/><rect x="48" y="49" width="16" height="24" rx="4" fill="#2E74B5"/></g><path d="M56 34 L68 24" stroke="#C9A227" stroke-width="3" stroke-linecap="round"/><path d="M63 22 L68 24 L66 30" fill="none" stroke="#C9A227" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   separation: '<svg viewBox="0 0 100 100"><rect x="4" y="30" width="26" height="56" fill="#1B2A4A"/><rect x="37" y="20" width="26" height="66" fill="#10203C"/><rect x="70" y="30" width="26" height="56" fill="#1B2A4A"/><rect x="0" y="18" width="100" height="7" fill="#C9A227" opacity=".85"/><circle cx="21" cy="60" r="8" fill="none" stroke="#2E74B5" stroke-width="3"/><circle cx="50" cy="55" r="8" fill="none" stroke="#C9A227" stroke-width="3"/><circle cx="79" cy="60" r="8" fill="none" stroke="#2E74B5" stroke-width="3"/></svg>',
   checks: '<svg viewBox="0 0 100 100"><g fill="none" stroke="#1B2A4A" stroke-width="7" stroke-linecap="round"><path d="M50 14 A36 36 0 0 1 82 34" /><path d="M82 66 A36 36 0 0 1 50 86" /><path d="M18 34 A36 36 0 0 1 18 66" /></g><g fill="#C9A227"><path d="M82 34 L74 24 L90 22 Z"/><path d="M50 86 L60 94 L58 78 Z"/><path d="M18 66 L26 76 L10 78 Z"/></g></svg>',
   federalism: '<svg viewBox="0 0 100 100"><path d="M12 30 Q50 10 88 30 Q94 55 88 82 Q50 96 12 82 Q6 55 12 30 Z" fill="#EFF3F8" stroke="#2E74B5" stroke-width="2.5"/><path d="M50 26 V70" stroke="#1B2A4A" stroke-width="3.5" stroke-linecap="round"/><path d="M50 26 L72 33 L50 42 Z" fill="#C9A227"/><g stroke="#1B2A4A" stroke-width="2" stroke-linecap="round"><path d="M24 50 V72"/><path d="M76 50 V72"/><path d="M34 62 V78"/></g><path d="M24 50 L34 53.5 L24 57 Z" fill="#2E74B5"/><path d="M76 50 L86 53.5 L76 57 Z" fill="#2E74B5"/><path d="M34 62 L42 64.5 L34 67 Z" fill="#2E74B5"/></svg>',
@@ -460,7 +455,8 @@ var GEARS = [
     pictureExample:'A ballot dropping into a box; the words “We the People.”',
     spotIt:'Election Day: citizens vote, and the government’s authority flows from those votes.',
     dontConfuse:'<b>Republicanism</b> — that’s about <b>electing representatives</b>; popular '+term('sovereignty','sovereignty')+' is about <b>where power comes from</b>.',
-    hero:'assets/card-popular-sovereignty.webp'
+    hero:'assets/card-popular-sovereignty.webp',
+    heroAlt:'Citizens of many backgrounds lining up to vote at a small-town courthouse in the early republic'
   },
   {
     id:'limited', name:'Limited Government', short:'Limited\nGovernment',
@@ -484,7 +480,8 @@ var GEARS = [
     pictureExample:'Three doors labeled Congress, President, Courts.',
     spotIt:'Congress writes the law; the President carries it out; the courts decide what it means.',
     dontConfuse:'<b>Checks and balances</b> — separation <b>divides</b> the jobs; checks let branches <b>block</b> each other.',
-    hero:'assets/card-separation-of-powers.webp'
+    hero:'assets/card-separation-of-powers.webp',
+    heroAlt:'A grand neoclassical capitol building with three distinct sections under one sky'
   },
   {
     id:'checks', name:'Checks and Balances', short:'Checks &amp;\nBalances',
@@ -498,9 +495,10 @@ var GEARS = [
     id:'federalism', name:'Federalism', short:'Federalism',
     definition:'Power is divided and shared between the national government and the states.',
     pictureExample:'A map: one big flag over fifty small ones.',
-    spotIt:'The '+term('federal','federal')+' government runs the military; your state runs public schools; both collect taxes.',
+    spotIt:'The '+term('federal','federal')+' government runs the military; your state runs public schools; <b>both</b> collect taxes.',
     dontConfuse:'<b>Separation of powers</b> — federalism splits power between <b>levels</b> (national/state), not branches.',
-    hero:'assets/card-federalism.webp'
+    hero:'assets/card-federalism.webp',
+    heroAlt:'A crossroads signpost in rolling countryside pointing toward a state capitol one way and the national capitol the other'
   },
   {
     id:'rights', name:'Individual Rights', short:'Individual\nRights',
@@ -508,20 +506,24 @@ var GEARS = [
     pictureExample:'A shield over a single person.',
     spotIt:'Trial by jury. Freedom of religion. The Bill of Rights is this principle written down.',
     dontConfuse:'<b>Limited government</b> — connected, but this gear names <b>your protections</b> specifically.',
-    hero:'assets/card-individual-rights.webp'
+    hero:'assets/card-individual-rights.webp',
+    heroAlt:'A family reading together by the hearth at home, a folded document on the table'
   }
 ];
 var GEAR_BY_ID = {};
 GEARS.forEach(function(g){ GEAR_BY_ID[g.id]=g; });
 
+/* labels are plain text; esc() them wherever they land in innerHTML
+   (aria-label gets the plain string — entities would be read out loud) */
 var SORTER_CHIPS = [
   {id:'declare-war', label:'Declare war', zone:'delegated'},
   {id:'coin-money', label:'Coin money', zone:'delegated'},
   {id:'public-ed', label:'Public education', zone:'reserved'},
-  {id:'marriage-driving', label:'Marriage &amp; driving laws', zone:'reserved'},
+  {id:'marriage-driving', label:'Marriage & driving laws', zone:'reserved'},
   {id:'collect-taxes', label:'Collect taxes', zone:'concurrent'},
   {id:'build-roads', label:'Build roads', zone:'concurrent'}
 ];
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 var SCENARIOS = [
   {text:'The Constitution opens with “We the People.”', answer:'sovereignty', tip:'The power source is named in the first three words.'},
@@ -591,6 +593,54 @@ function gearToothPath(rOuter, rInner, teeth){
 var TOOTH_PATH = gearToothPath(GEAR_R, GEAR_R*0.80, 11);
 var TOOTH_PATH_HUB = gearToothPath(GEAR_R, GEAR_R*0.80, 13);
 
+/* ============================================================
+   GEAR MOTION ENGINE — rAF-driven rotation.
+   CSS animations restart from 0° whenever the SVGs re-render and
+   jump when animation-duration changes; driving the angles from
+   JS keeps rotation continuous through re-renders and lets speed
+   ease smoothly (hover slow-down, money-moment speed-up).
+   Hub (13 teeth) and ring gears (11 teeth) turn at the real
+   13:11 mesh ratio, in opposite directions.
+   ============================================================ */
+var REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var HUB_DEG_PER_SEC = 360/48;   /* one hub revolution ≈ 48s */
+var MESH_RATIO = 13/11;         /* ring gears have fewer teeth → turn faster */
+var SLOW_MULT = 0.4, SYNC_MULT = 2.6;
+var MOTION = {
+  hubAngle:0, ringAngle:0,
+  mult:1, target:1,
+  engaged:false, synced:false,
+  cw:[], ccw:[],
+  last:null
+};
+function refreshSpinNodes(){
+  MOTION.cw  = Array.prototype.slice.call(document.querySelectorAll('.gear-spin--cw'));
+  MOTION.ccw = Array.prototype.slice.call(document.querySelectorAll('.gear-spin--ccw'));
+  applyGearAngles();
+}
+function applyGearAngles(){
+  /* SVG transform ATTRIBUTE, not CSS — attribute rotate() pivots on the
+     local (0,0) the gear paths are drawn around */
+  var i;
+  for(i=0;i<MOTION.cw.length;i++)  MOTION.cw[i].setAttribute('transform','rotate('+MOTION.hubAngle.toFixed(2)+')');
+  for(i=0;i<MOTION.ccw.length;i++) MOTION.ccw[i].setAttribute('transform','rotate('+(-MOTION.ringAngle).toFixed(2)+')');
+}
+function updateMotionTarget(){
+  MOTION.target = MOTION.synced ? SYNC_MULT : (MOTION.engaged ? SLOW_MULT : 1);
+}
+function setEngagedMotion(on){ MOTION.engaged = !!on; updateMotionTarget(); }
+function setSyncedMotion(on){ MOTION.synced = !!on; updateMotionTarget(); }
+function tickGears(t){
+  if(MOTION.last===null) MOTION.last = t;
+  var dt = Math.min((t-MOTION.last)/1000, 0.1);
+  MOTION.last = t;
+  MOTION.mult += (MOTION.target-MOTION.mult)*Math.min(1, dt*4);
+  MOTION.hubAngle  = (MOTION.hubAngle  + HUB_DEG_PER_SEC*MOTION.mult*dt) % 360;
+  MOTION.ringAngle = (MOTION.ringAngle + HUB_DEG_PER_SEC*MESH_RATIO*MOTION.mult*dt) % 360;
+  applyGearAngles();
+  requestAnimationFrame(tickGears);
+}
+
 function gearMarkup(gear, cx, cy, spinClass, pathD, opened){
   var lines = gear.short.split('\n');
   var tspans = lines.map(function(line,i){
@@ -614,34 +664,38 @@ function gearMarkup(gear, cx, cy, spinClass, pathD, opened){
   );
 }
 
-function buildMachineSVG(){
+function buildMachineSVG(showOpened){
   var hub = GEAR_BY_ID.sovereignty;
-  var svg = gearMarkup(hub, CENTER.x, CENTER.y, 'gear-spin--cw', TOOTH_PATH_HUB, !!state.exploreOpened[hub.id]);
+  var svg = gearMarkup(hub, CENTER.x, CENTER.y, 'gear-spin--cw', TOOTH_PATH_HUB, showOpened && !!state.exploreOpened[hub.id]);
   RING_ORDER.forEach(function(id,k){
     var g = GEAR_BY_ID[id];
     var p = ringPos(k);
-    svg += gearMarkup(g, p.x, p.y, 'gear-spin--ccw', TOOTH_PATH, !!state.exploreOpened[id]);
+    svg += gearMarkup(g, p.x, p.y, 'gear-spin--ccw', TOOTH_PATH, showOpened && !!state.exploreOpened[id]);
   });
   return svg;
 }
 
-function buildGearGrid(){
+function buildGearGrid(showOpened){
   var order = ['sovereignty'].concat(RING_ORDER);
   return order.map(function(id){
     var g = GEAR_BY_ID[id];
-    return '<button type="button" class="gear-chip'+(state.exploreOpened[id]?' opened':'')+'" data-gear="'+id+'" aria-label="'+g.name+(state.exploreOpened[id]?' — opened':'')+'">'+
+    var opened = showOpened && !!state.exploreOpened[id];
+    return '<button type="button" class="gear-chip'+(opened?' opened':'')+'" data-gear="'+id+'" aria-label="'+g.name+(opened?' — opened':'')+'">'+
       '<span class="chip-icon">'+iconFor(id)+'</span>'+
-      '<span class="gear-chip-label">'+g.name+(state.exploreOpened[id]?' ✅':'')+'</span>'+
+      '<span class="gear-chip-label">'+g.name+(opened?' ✅':'')+'</span>'+
     '</button>';
   }).join('');
 }
 
 function renderMachines(){
-  document.getElementById('machine-svg').innerHTML = buildMachineSVG();
-  document.getElementById('machine-svg-match').innerHTML = buildMachineSVG();
-  document.getElementById('gear-grid').innerHTML = buildGearGrid();
-  document.getElementById('gear-grid-match').innerHTML = buildGearGrid();
+  /* explore surfaces show explored-✅ state; Match It surfaces stay
+     clean so the badges can't read as answer hints */
+  document.getElementById('machine-svg').innerHTML = buildMachineSVG(true);
+  document.getElementById('machine-svg-match').innerHTML = buildMachineSVG(false);
+  document.getElementById('gear-grid').innerHTML = buildGearGrid(true);
+  document.getElementById('gear-grid-match').innerHTML = buildGearGrid(false);
   wireGearNodes();
+  refreshSpinNodes();
 }
 
 function renderProgress(){
@@ -665,9 +719,7 @@ function markActive(id){
   document.querySelectorAll('.gear').forEach(function(node){
     node.classList.toggle('active', id && node.getAttribute('data-gear')===id);
   });
-  document.querySelectorAll('#machine-svg, #machine-svg-match').forEach(function(svgEl){
-    svgEl.classList.toggle('engaged', !!id);
-  });
+  setEngagedMotion(!!id);
 }
 
 function wireGearNodes(){
@@ -705,7 +757,7 @@ function pictureIconMarkup(id){
 }
 
 function renderCardContent(gear){
-  var heroHtml = gear.hero ? '<div class="card-hero"><img src="'+gear.hero+'" alt="'+gear.name+' illustration"></div>' : '';
+  var heroHtml = gear.hero ? '<div class="card-hero"><img src="'+gear.hero+'" alt="'+gear.heroAlt+'" onerror="this.closest(\'.card-hero\').style.display=\'none\'"></div>' : '';
   var sorterHtml = gear.id==='federalism' ? renderSorterMarkup() : '';
   return (
     '<div class="card-topline">'+
@@ -741,7 +793,7 @@ function openCard(id){
   markActive(id);
   var title = document.getElementById('card-title');
   if(title) title.focus();
-  announce(gear.name + ' card opened.');
+  announce(gear.name + ' card opened. ' + state.openedCount + ' of 7 gears explored.');
 
   if(state.openedCount===7 && !state.moneyMomentPlayed){
     state.moneyMomentPlayed = true;
@@ -752,12 +804,18 @@ function openCard(id){
 function closeCard(){
   document.getElementById('stage').classList.remove('card-open');
   markActive(null);
+  hideGlossary();
   var id = state.openGearId;
   state.openGearId = null;
   renderMachines();
   if(id){
-    var node = document.querySelector('.gear[data-gear="'+id+'"]');
-    if(node) node.focus();
+    /* restore focus to the visible control: at phone widths the SVG is
+       display:none, so focus the grid chip instead */
+    var svgGear = document.querySelector('#machine-svg .gear[data-gear="'+id+'"]');
+    var chip = document.querySelector('#gear-grid .gear-chip[data-gear="'+id+'"]');
+    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    var target = (vw && vw<=600 && chip) ? chip : svgGear;
+    if(target) target.focus();
   }
 }
 
@@ -768,7 +826,11 @@ document.getElementById('dim-overlay').addEventListener('click', function(){
   if(document.getElementById('stage').classList.contains('card-open')) closeCard();
 });
 document.addEventListener('keydown', function(e){
-  if(e.key==='Escape' && document.getElementById('stage').classList.contains('card-open')) closeCard();
+  if(e.key!=='Escape') return;
+  /* Escape peels one layer at a time: glossary popover first, then the card */
+  var pop = document.getElementById('glossary-pop');
+  if(pop.classList.contains('show')){ hideGlossary(); return; }
+  if(document.getElementById('stage').classList.contains('card-open')) closeCard();
 });
 
 /* ============================================================
@@ -817,7 +879,7 @@ function renderChipInZone(chipId){
   var placed = zone!=='tray';
   var correct = placed && zone===chip.zone;
   if(placed) btn.classList.add(correct ? 'correct' : 'incorrect');
-  btn.innerHTML = (placed ? '<span class="mark">'+(correct?'✓':'✗')+'</span>' : '') + chip.label;
+  btn.innerHTML = (placed ? '<span class="mark">'+(correct?'✓':'✗')+'</span>' : '') + esc(chip.label);
   btn.setAttribute('aria-label', chip.label + (placed ? (correct? ' — correctly placed in '+zone : ' — placed in '+zone+', try again') : ' — not yet sorted'));
   btn.addEventListener('click', function(){ cycleChip(chipId); });
   host.appendChild(btn);
@@ -875,21 +937,18 @@ document.addEventListener('click', function(e){
     hideGlossary();
   }
 });
-document.addEventListener('keydown', function(e){
-  if(e.key==='Escape') hideGlossary();
-});
 
 /* ============================================================
    MONEY MOMENT
    ============================================================ */
 function playMoneyMoment(){
-  document.querySelectorAll('#machine-svg, #machine-svg-match').forEach(function(s){ s.classList.add('synced'); });
+  setSyncedMotion(true);
   var banner = document.getElementById('money-banner');
   banner.classList.remove('play'); void banner.offsetWidth;
   banner.classList.add('play');
   announce('All seven gears explored. …a more perfect Union.');
   setTimeout(function(){
-    document.querySelectorAll('#machine-svg, #machine-svg-match').forEach(function(s){ s.classList.remove('synced'); });
+    setSyncedMotion(false);
     banner.classList.remove('play');
   }, 6600);
 }
@@ -1020,6 +1079,9 @@ function wireImageFallbacks(){
 renderMachines();
 renderProgress();
 wireImageFallbacks();
+document.getElementById('card-panel').addEventListener('scroll', hideGlossary, {passive:true});
+if(!REDUCED_MOTION) requestAnimationFrame(tickGears);
+window.__pm = {motion:MOTION, state:state}; /* QA/debug handle */
 
 })();
 </script>
